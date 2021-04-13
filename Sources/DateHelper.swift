@@ -150,7 +150,10 @@ public extension Date {
     }
     
     /// Converts the date to string based on a relative time language. i.e. just now, 1 minute ago etc...
-    func toStringWithRelativeTime(strings:[RelativeTimeStringType:String]? = nil) -> String {
+    func toStringWithRelativeTime(
+        strings:[RelativeTimeStringType:String]? = nil,
+        types: RelativeTimeHandleType
+    ) -> String {
         let time = self.timeIntervalSince1970
         let now = Date().timeIntervalSince1970
         
@@ -159,7 +162,7 @@ public extension Date {
         let hr:Double = round(min/60)
         let d:Double = round(hr/24)
         
-        switch toRelativeTime() {
+        switch toRelativeTime(handleType: types) {
         case .nowPast:
             return strings?[.nowPast] ?? NSLocalizedString("just now", comment: "Date format")
         case .nowFuture:
@@ -250,7 +253,9 @@ public extension Date {
     }
     
     /// Converts the date to  a relative time language. i.e. .nowPast, .minutesFuture
-    func toRelativeTime() -> RelativeTimeStringType {
+    func toRelativeTime(
+        handleType: RelativeTimeHandleType = .all
+    ) -> RelativeTimeStringType {
         let time = self.timeIntervalSince1970
         let now = Date().timeIntervalSince1970
         let isPast = now - time > 0
@@ -275,6 +280,7 @@ public extension Date {
                 }
             }
         }
+        
         if min < 60 {
             if min == 1 {
                 if isPast {
@@ -290,7 +296,8 @@ public extension Date {
                 }
             }
         }
-        if hr < 24 {
+        
+        if handleType == .hours ? true : hr < 24 {
             if hr == 1 {
                 if isPast {
                     return .oneHourPast
@@ -305,7 +312,8 @@ public extension Date {
                 }
             }
         }
-        if d < 7 {
+        
+        if handleType == .days ? true : d < 7 {
             if d == 1 {
                 if isPast {
                     return .oneDayPast
@@ -320,7 +328,8 @@ public extension Date {
                 }
             }
         }
-        if d < 28 {
+        
+        if handleType == .weeks ? true : d < 28 {
             if isPast {
                 if compare(.isLastWeek) {
                     return .oneWeekPast
@@ -335,7 +344,8 @@ public extension Date {
                 }
             }
         }
-        if compare(.isThisYear) {
+        
+        if handleType == .months ? true : compare(.isThisYear) {
             if isPast {
                 if compare(.isLastMonth) {
                     return .oneMonthPast
@@ -350,6 +360,7 @@ public extension Date {
                 }
             }
         }
+        
         if isPast {
             if compare(.isLastYear) {
                 return .oneYearPast
@@ -864,6 +875,11 @@ public enum TimeZoneType {
 // The string keys to modify the strings in relative format
 public enum RelativeTimeStringType {
     case nowPast, nowFuture, secondsPast, secondsFuture, oneMinutePast, oneMinuteFuture, minutesPast, minutesFuture, oneHourPast, oneHourFuture, hoursPast, hoursFuture, oneDayPast, oneDayFuture, daysPast, daysFuture, oneWeekPast, oneWeekFuture, weeksPast, weeksFuture, oneMonthPast, oneMonthFuture, monthsPast, monthsFuture, oneYearPast, oneYearFuture, yearsPast, yearsFuture
+}
+
+// The string keys to handle RelativeTimeStringType format
+public enum RelativeTimeHandleType {
+    case hours, days, weeks, months, all
 }
 
 // The type of comparison to do against today's date or with the suplied date.
